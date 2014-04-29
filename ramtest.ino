@@ -9,6 +9,10 @@ int tEW = 40;
 int tACE = 55;
 int tAA = 55;
 int tWR = 0;
+int tAS = 1;
+int tDW = 1;
+int tDH = 1;
+int tAOE = 1;
 
 #define ASIZE(a) (sizeof(a)/sizeof(a[0]))
 
@@ -121,12 +125,12 @@ void setup()
 
 void loop()
 {
-  digitalWrite(cePin, LOW);
-  delayMicroseconds(1);
+  //digitalWrite(cePin, LOW);
+  //delayMicroseconds(1);
   word values[4];
   for (int i = 0; i < 4; i++) {
     values[i] = random(0, 8);
-    mem_write(values[i], i);
+    write_ce(values[i], i);
     Serial.print("Writing: ");
     Serial.print(values[i]);
     Serial.print(" to ");
@@ -143,9 +147,11 @@ void loop()
     */
   }
 
-  setup_read();
+  //setup_read();
+  read_setup();
+  
   for (int i = 0; i < 4; i++) {
-    word val = mem_read(i);
+    word val = read1(i);
     
     if (val == values[i]) {
       Serial.print("Sucessfully read ");
@@ -163,7 +169,7 @@ void loop()
   }    
   
   for (int i = 0; i < 4; i++) {
-    word val = mem_read(i);
+    word val = read1(i);
     
     if (val == values[i]) {
       Serial.print("Sucessfully read ");
@@ -179,43 +185,90 @@ void loop()
       Serial.println(i);    
     }  
   }
-
-  digitalWrite(cePin, HIGH);
   
   delay(5000);
 }
 
-void write_ce(byte value, word loc)
+void write_ce(byte val, word loc)
 {
   //set ce HIGH
+  digitalWrite(cePin, HIGH);
   //set rw to high
+  digitalWrite(rwPin, HIGH);
   //set data pins to output
+
+  for (int i = 0; i < ASIZE(d); i++) {
+    pinMode(d[i], OUTPUT);
+  }
+  
   //write address pins
+  set_address_pins(loc);
   //set rw to low
+  digitalWrite(rwPin, LOW);
   //tAS
+  delayMicroseconds(tAS);
   //set ce low
+  digitalWrite(cePin, LOW);
   //write data pins
-  //tDW
+
+  Serial.print("WRITE: ");
+  for (int i = ASIZE(d) - 1; i >= 0; i--) {
+    pinMode(d[i], OUTPUT);
+    if ((val >> i) & 0x1) {
+      digitalWrite(d[i], HIGH);
+      Serial.print("1");
+    } else {
+      digitalWrite(d[i], LOW);
+      Serial.print("0");
+    }
+  }
+  Serial.println("");  
+  delayMicroseconds(tDW);
   //set ce high
+  digitalWrite(cePin, HIGH);
   //set rw high
+  digitalWrite(rwPin, LOW);
+  delayMicroseconds(tDH);
 }
 
 void read_setup()
 {
-  //set ce high
+  //set ce HIGH
+  digitalWrite(cePin, HIGH);
   //set data pins to input
+  for (int i = 0; i < ASIZE(d); i++) {
+    pinMode(d[i], INPUT);
+  }
   //set ce low
-  //tACE
+  digitalWrite(cePin, LOW);
+  delayMicroseconds(tACE);
   //set rw high
+  digitalWrite(rwPin, HIGH);
   //set oe low
+  digitalWrite(oePin, LOW);
   //tAOE
+  delayMicroseconds(tAOE);
 }
 
 byte read1(word loc)
 {
-  /set address pins
-  //tAA
+  //set address pins
+  set_address_pins(loc);
   //read, read, read until address changes again
+  delay(1000);
+  byte data = 0x0;
+  Serial.print("READ: ");
+  for (int i = ASIZE(d) - 1; i >= 0; i--) {    
+    if (digitalRead(d[i]) != LOW) {
+      Serial.print("1");
+      data |= (0x1 << i);
+    } else {
+      Serial.print("0");
+    }
+  }
+  
+  Serial.println("");
+  return data;
 }
 
 
