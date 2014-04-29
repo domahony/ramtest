@@ -172,7 +172,6 @@ byte read1(word loc)
   //set address pins
   set_address_pins(loc);
   //read, read, read until address changes again
-  //delay(1000); ZZZZ
   byte data = 0x0;
   Serial.print("READ: ");
   for (int i = ASIZE(d) - 1; i >= 0; i--) {    
@@ -182,8 +181,7 @@ byte read1(word loc)
     } else {
       Serial.print("0");
     }
-  }
-  
+  } 
   Serial.println("");
   return data;
 }
