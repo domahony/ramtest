@@ -32,9 +32,10 @@ void mem_write(byte val, word addr)
 {
   digitalWrite(rwPin, HIGH);
   set_address_pins(addr);
-  delayMicroseconds(1);
+  delayMicroseconds(1); //tAA??
   digitalWrite(oePin, LOW);
   digitalWrite(rwPin, LOW);
+  delayMicroseconds(1);  //tWZ
 
   Serial.print("WRITE: ");
   for (int i = ASIZE(d) - 1; i >= 0; i--) {
