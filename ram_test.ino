@@ -1,4 +1,3 @@
-
 int cePin = 7;
 int rwPin = 8;
 int oePin = 2;
@@ -15,7 +14,6 @@ int tWR = 0;
 
 void set_address_pins(word addr)
 {
-  digitalWrite(cePin, HIGH);
 
   Serial.print("ADDR: ");
   for (int i = ASIZE(a) - 1; i >= 0; i--) {    
@@ -28,19 +26,15 @@ void set_address_pins(word addr)
     }  
   }
   
-  delayMicroseconds(55);
-  digitalWrite(cePin, LOW);
-  delayMicroseconds(55);
-  Serial.println("");
 }
 
 void mem_write(byte val, word addr)
 {
+  digitalWrite(rwPin, HIGH);
   set_address_pins(addr);
-  //set data pins
+  delayMicroseconds(1);
+  digitalWrite(oePin, LOW);
   digitalWrite(rwPin, LOW);
-  digitalWrite(oePin, HIGH);
-  delayMicroseconds(55);
 
   Serial.print("WRITE: ");
   for (int i = ASIZE(d) - 1; i >= 0; i--) {
@@ -54,20 +48,20 @@ void mem_write(byte val, word addr)
     }
   }
   Serial.println("");
-  delayMicroseconds(55); //do we need this?
+  delayMicroseconds(1); //do we need this?
 
-  digitalWrite(rwPin, HIGH);  
-  delayMicroseconds(55);
-  digitalWrite(cePin, HIGH);
+  digitalWrite(rwPin, HIGH);
+  digitalWrite(oePin, HIGH);
 }
 
 byte mem_read(word addr)
 {
-  set_address_pins(addr);
-
+  digitalWrite(cePin, LOW);
   digitalWrite(oePin, LOW);  //max 25u
   digitalWrite(rwPin, HIGH);
-  delayMicroseconds(55); //do we need this?
+
+  set_address_pins(addr);
+  delayMicroseconds(1); //do we need this?
   
   byte data = 0x0;
   Serial.print("READ: ");
@@ -84,9 +78,6 @@ byte mem_read(word addr)
   }
   
   Serial.println("");
-  digitalWrite(oePin, HIGH);
-  digitalWrite(cePin, HIGH);
-  
   return data;
 }
 
@@ -113,6 +104,7 @@ void setup()
 
 void loop()
 {
+  digitalWrite(cePin, LOW);
   word values[4];
   for (int i = 0; i < 4; i++) {
     values[i] = random(0, 8);
@@ -151,6 +143,8 @@ void loop()
     }
     
   }
+
+  digitalWrite(cePin, HIGH);
   
   delay(5000);
 }
