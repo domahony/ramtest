@@ -25,17 +25,25 @@ void set_address_pins(word addr)
       Serial.print("0");
     }  
   }
-  
+ 
+   delayMicroseconds(1);
+  Serial.println(""); 
 }
 
 void mem_write(byte val, word addr)
 {
+
+  digitalWrite(cePin, HIGH);
+  for (int i = ASIZE(d) - 1; i >= 0; i--) {
+    pinMode(d[i], OUTPUT);
+    digitalWrite(d[i], LOW);
+  }  
+  digitalWrite(oePin, LOW);
+  
+  delayMicroseconds(1);
   digitalWrite(rwPin, HIGH);
   set_address_pins(addr);
-  delayMicroseconds(1); //tAA??
-  digitalWrite(oePin, LOW);
   digitalWrite(rwPin, LOW);
-  delayMicroseconds(1);  //tWZ
 
   Serial.print("WRITE: ");
   for (int i = ASIZE(d) - 1; i >= 0; i--) {
@@ -49,7 +57,10 @@ void mem_write(byte val, word addr)
     }
   }
   Serial.println("");
-  delayMicroseconds(1); //do we need this?
+  digitalWrite(rwPin, HIGH);
+  delayMicroseconds(1);  //tWZ
+  digitalWrite(rwPin, LOW);
+  delayMicroseconds(1);  //tWZ
 
   digitalWrite(rwPin, HIGH);
   digitalWrite(oePin, HIGH);
@@ -58,21 +69,23 @@ void mem_write(byte val, word addr)
 void setup_read()
 {
   digitalWrite(cePin, LOW);
+  delayMicroseconds(1);
   digitalWrite(oePin, LOW);  //max 25u
+  for (int i = ASIZE(d) - 1; i >= 0; i--) {
+    pinMode(d[i], INPUT);
+  }  
+  delayMicroseconds(1);
   digitalWrite(rwPin, HIGH);
 }
 
 byte mem_read(word addr)
 {
   set_address_pins(addr);
-  delayMicroseconds(1); //do we need this?
   
   byte data = 0x0;
   Serial.print("READ: ");
 
-  for (int i = ASIZE(d) - 1; i >= 0; i--) {
-    pinMode(d[i], INPUT);
-    
+  for (int i = ASIZE(d) - 1; i >= 0; i--) {    
     if (digitalRead(d[i]) != LOW) {
       Serial.print("1");
       data |= (0x1 << i);
@@ -109,6 +122,7 @@ void setup()
 void loop()
 {
   digitalWrite(cePin, LOW);
+  delayMicroseconds(1);
   word values[4];
   for (int i = 0; i < 4; i++) {
     values[i] = random(0, 8);
@@ -130,7 +144,7 @@ void loop()
   }
 
   setup_read();
-  for (int i = 3; i >=0; i--) {
+  for (int i = 0; i < 4; i++) {
     word val = mem_read(i);
     
     if (val == values[i]) {
@@ -146,7 +160,24 @@ void loop()
       Serial.print(" from ");
       Serial.println(i);    
     }
+  }    
+  
+  for (int i = 0; i < 4; i++) {
+    word val = mem_read(i);
     
+    if (val == values[i]) {
+      Serial.print("Sucessfully read ");
+      Serial.print(val);
+      Serial.print(" from ");
+      Serial.println(i);
+    } else {
+      Serial.print("Expected ");
+      Serial.print(values[i]);
+      Serial.print(" got ");
+      Serial.print(val);
+      Serial.print(" from ");
+      Serial.println(i);    
+    }  
   }
 
   digitalWrite(cePin, HIGH);
