@@ -55,12 +55,15 @@ void mem_write(byte val, word addr)
   digitalWrite(oePin, HIGH);
 }
 
-byte mem_read(word addr)
+void setup_read()
 {
   digitalWrite(cePin, LOW);
   digitalWrite(oePin, LOW);  //max 25u
   digitalWrite(rwPin, HIGH);
+}
 
+byte mem_read(word addr)
+{
   set_address_pins(addr);
   delayMicroseconds(1); //do we need this?
   
@@ -126,6 +129,7 @@ void loop()
     */
   }
 
+  setup_read();
   for (int i = 3; i >=0; i--) {
     word val = mem_read(i);
     
