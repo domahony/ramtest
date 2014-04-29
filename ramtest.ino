@@ -185,6 +185,39 @@ void loop()
   delay(5000);
 }
 
+void write_ce(byte value, word loc)
+{
+  //set ce HIGH
+  //set rw to high
+  //set data pins to output
+  //write address pins
+  //set rw to low
+  //tAS
+  //set ce low
+  //write data pins
+  //tDW
+  //set ce high
+  //set rw high
+}
+
+void read_setup()
+{
+  //set ce high
+  //set data pins to input
+  //set ce low
+  //tACE
+  //set rw high
+  //set oe low
+  //tAOE
+}
+
+byte read1(word loc)
+{
+  /set address pins
+  //tAA
+  //read, read, read until address changes again
+}
+
 
 
 
