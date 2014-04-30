@@ -5,28 +5,7 @@ int oePin = 2;
 int a[2] = {3,4};
 int d[3] = {10,11,12};
 
-#define ASIZE(a) (sizeof(a)/sizeof(a[0]))
-
-void dbg_set_address(word addr)
-{
-  Serial.print("ADDR: ");
-  for (int i = ASIZE(a) - 1; i >= 0; i--) {    
-    if ((addr >> i) & 0x1) {
-      Serial.print("1");
-    } else {
-      Serial.print("0");
-    }  
-  } 
-  Serial.println(""); 
-}
-
-void set_address_pins(word addr)
-{
-  for (int i = ASIZE(a) - 1; i >= 0; i--) {    
-      digitalWrite(a[i], (addr >> i) & 0x1);
-  } 
-}
-
+#define NSIZE(a) (sizeof(a)/sizeof(a[0]))
 
 void setup()
 {
@@ -34,18 +13,18 @@ void setup()
   pinMode(cePin, OUTPUT);
   pinMode(rwPin, OUTPUT);
   pinMode(oePin, OUTPUT);
-  
-  for (int i = 0; i < ASIZE(a); i++) {
-    pinMode(a[i], OUTPUT);
-  }
-  
-  for (int i = 0; i < ASIZE(d); i++) {
-    pinMode(d[i], OUTPUT);
-  }
 
   digitalWrite(cePin, HIGH);
   digitalWrite(rwPin, HIGH);
   digitalWrite(oePin, HIGH);
+
+  for (int i = 0; i < NSIZE(a); i++) {
+    pinMode(a[i], OUTPUT);
+  }
+  
+  for (int i = 0; i < NSIZE(d); i++) {
+    pinMode(d[i], OUTPUT);
+  }
 
 }
 
@@ -83,7 +62,7 @@ void write_ce(byte val, word loc)
   digitalWrite(rwPin, HIGH);
   
   //set data pins to output
-  for (int i = 0; i < ASIZE(d); i++) {
+  for (int i = 0; i < NSIZE(d); i++) {
     pinMode(d[i], OUTPUT);
   }
   
@@ -97,7 +76,7 @@ void write_ce(byte val, word loc)
   digitalWrite(cePin, LOW);
 
   //write data pins
-  for (int i = ASIZE(d) - 1; i >= 0; i--) {
+  for (int i = NSIZE(d) - 1; i >= 0; i--) {
     digitalWrite(d[i], (val >> i) & 0x1);
   }
   //tDW
@@ -115,7 +94,7 @@ void read_setup()
   digitalWrite(cePin, HIGH);
 
   //set data pins to input
-  for (int i = 0; i < ASIZE(d); i++) {
+  for (int i = 0; i < NSIZE(d); i++) {
     pinMode(d[i], INPUT);
   }
 
@@ -137,11 +116,31 @@ byte read1(word loc)
   set_address_pins(loc);
 
   byte data = 0x0;
-  for (int i = ASIZE(d) - 1; i >= 0; i--) {    
+  for (int i = NSIZE(d) - 1; i >= 0; i--) {    
     if (digitalRead(d[i]) != LOW) {
       data |= (0x1 << i);
     }
   } 
 
   return data;
+}
+
+void set_address_pins(word addr)
+{
+  for (int i = NSIZE(a) - 1; i >= 0; i--) {    
+      digitalWrite(a[i], (addr >> i) & 0x1);
+  } 
+}
+
+void dbg_set_address(word addr)
+{
+  Serial.print("ADDR: ");
+  for (int i = NSIZE(a) - 1; i >= 0; i--) {    
+    if ((addr >> i) & 0x1) {
+      Serial.print("1");
+    } else {
+      Serial.print("0");
+    }  
+  } 
+  Serial.println(""); 
 }
